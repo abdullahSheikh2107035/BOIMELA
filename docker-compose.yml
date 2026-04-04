@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: boimela_app
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_URL=jdbc:postgresql://db:5432/boimela_db
+      - DB_USER=boimela_user
+      - DB_PASSWORD=boimela_pass
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:15-alpine
+    container_name: boimela_db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=boimela_db
+      - POSTGRES_USER=boimela_user
+      - POSTGRES_PASSWORD=boimela_pass
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boimela_user -d boimela_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
