@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>My Books - Boimela</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0d0d0d; color: #e0e0e0; min-height: 100vh; }
+        nav { background: linear-gradient(135deg,#1a1a2e,#16213e); border-bottom: 1px solid #2a2a4a; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
+        .nav-brand { font-size: 1.5rem; font-weight: 700; color: #667eea; text-decoration: none; }
+        .nav-links { display: flex; gap: 8px; }
+        .nav-links a { padding: 8px 16px; border-radius: 8px; text-decoration: none; color: #a0a0c0; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
+        .nav-links a:hover, .nav-links a.active { background: rgba(102,126,234,0.2); color: #667eea; }
+        .logout-btn { padding: 8px 16px; background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+
+        main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+        h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; }
+        .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 32px; }
+
+        /* Form Card */
+        .form-card { background: #161625; border: 1px solid #2a2a4a; border-radius: 16px; padding: 28px; margin-bottom: 36px; }
+        .form-card h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; color: #a0a0d0; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+        label { font-size: 0.82rem; font-weight: 500; color: #888; }
+        input, textarea { background: #0d0d1a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 10px 14px; color: #e0e0e0; font-size: 0.9rem; font-family: 'Inter', sans-serif; transition: border-color 0.2s; }
+        input:focus, textarea:focus { outline: none; border-color: #667eea; }
+        textarea { resize: vertical; min-height: 80px; }
+        .btn-submit { margin-top: 8px; padding: 11px 28px; background: linear-gradient(135deg,#667eea,#764ba2); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; }
+        .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(102,126,234,0.35); }
+        .btn-submit:disabled { background: #333; color: #555; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Book list */
+        .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; }
+        .books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+        .book-card { background: #161625; border: 1px solid #2a2a4a; border-radius: 14px; padding: 20px; transition: all 0.25s; }
+        .book-card:hover { border-color: #667eea; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(102,126,234,0.12); }
+        .book-status { display: inline-flex; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; margin-bottom: 10px; }
+        .status-available { background: rgba(16,185,129,0.15); color: #10b981; }
+        .status-sold { background: rgba(239,68,68,0.12); color: #ef4444; }
+        .book-title { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+        .book-author { font-size: 0.82rem; color: #888; margin-bottom: 8px; }
+        .book-price { font-size: 1.15rem; font-weight: 700; color: #10b981; margin-bottom: 14px; }
+        .book-desc { font-size: 0.82rem; color: #666; line-height: 1.5; margin-bottom: 14px; }
+        .btn-delete { padding: 7px 14px; background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s; }
+        .btn-delete:hover { background: rgba(239,68,68,0.2); }
+        .empty { text-align: center; padding: 50px 20px; color: #444; }
+
+        /* Toast */
+        #toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: 0.88rem; font-weight: 500; z-index: 9999; display: none; }
+        .toast-success { background: #065f46; color: #6ee7b7; border: 1px solid #059669; }
+        .toast-error { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="/dashboard" class="nav-brand">📚 Boimela</a>
+    <div class="nav-links">
+        <a href="/dashboard">🏠 Marketplace</a>
+        <a href="/sell" class="active">📦 My Books</a>
+        <a href="/orders">📋 Orders</a>
+    </div>
+    <form th:action="@{/logout}" method="post">
+        <button type="submit" class="logout-btn">Logout</button>
+    </form>
+</nav>
+
+<main>
+    <h1>📦 My Book Listings</h1>
+    <p class="subtitle">List new books for sale and manage your existing listings.</p>
+
+    <div class="form-card">
+        <h2>➕ List a New Book</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="bookTitle">Book Title *</label>
+                <input type="text" id="bookTitle" placeholder="e.g. The Great Gatsby" required>
+            </div>
+            <div class="form-group">
+                <label for="bookAuthor">Author *</label>
+                <input type="text" id="bookAuthor" placeholder="e.g. F. Scott Fitzgerald" required>
+            </div>
+            <div class="form-group">
+                <label for="bookPrice">Price (৳) *</label>
+                <input type="number" id="bookPrice" placeholder="e.g. 12.99" step="0.01" min="0" required>
+            </div>
+            <div class="form-group full">
+                <label for="bookDesc">Description</label>
+                <textarea id="bookDesc" placeholder="Brief description of the book..."></textarea>
+            </div>
+        </div>
+        <button class="btn-submit" id="listBtn" onclick="listBook()">📤 List Book for Sale</button>
+    </div>
+
+    <div class="section-title">📚 Your Listed Books</div>
+    <div class="books-grid" id="myBooksGrid">
+        <div style="color:#555;padding:30px;grid-column:1/-1;text-align:center;">Loading...</div>
+    </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = type === 'success' ? 'toast-success' : 'toast-error';
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3500);
+    }
+
+    async function listBook() {
+        const title = document.getElementById('bookTitle').value.trim();
+        const author = document.getElementById('bookAuthor').value.trim();
+        const price = parseFloat(document.getElementById('bookPrice').value);
+        const description = document.getElementById('bookDesc').value.trim();
+
+        if (!title || !author || isNaN(price)) {
+            showToast('Please fill in all required fields.', 'error'); return;
+        }
+
+        const btn = document.getElementById('listBtn');
+        btn.disabled = true; btn.textContent = 'Listing...';
+
+        try {
+            const res = await fetch('/api/books', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, author, description, price })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(`✅ "${data.title}" listed successfully!`);
+                document.getElementById('bookTitle').value = '';
+                document.getElementById('bookAuthor').value = '';
+                document.getElementById('bookPrice').value = '';
+                document.getElementById('bookDesc').value = '';
+                loadMyBooks();
+            } else {
+                showToast(data.message || 'Failed to list book.', 'error');
+            }
+        } catch(e) {
+            showToast('Network error.', 'error');
+        } finally {
+            btn.disabled = false; btn.textContent = '📤 List Book for Sale';
+        }
+    }
+
+    async function loadMyBooks() {
+        try {
+            const res = await fetch('/api/books/mine');
+            if (res.status === 403) {
+                document.getElementById('myBooksGrid').innerHTML =
+                    `<div class="empty" style="grid-column:1/-1">⛔ You need a SELLER role to list books.</div>`;
+                return;
+            }
+            const books = await res.json();
+            const grid = document.getElementById('myBooksGrid');
+            if (books.length === 0) {
+                grid.innerHTML = `<div class="empty" style="grid-column:1/-1">📭 You haven't listed any books yet.</div>`;
+                return;
+            }
+            grid.innerHTML = books.map(b => `
+                <div class="book-card">
+                    <span class="book-status ${b.available ? 'status-available' : 'status-sold'}">
+                        ${b.available ? '✅ Available' : '🔴 Sold'}
+                    </span>
+                    <div class="book-title">${esc(b.title)}</div>
+                    <div class="book-author">by ${esc(b.author)}</div>
+                    <div class="book-price">৳${b.price ? b.price.toFixed(2) : '0.00'}</div>
+                    <div class="book-desc">${esc(b.description || '')}</div>
+                    <button class="btn-delete" onclick="deleteBook(${b.id}, this)">🗑 Remove</button>
+                </div>
+            `).join('');
+        } catch(e) {
+            document.getElementById('myBooksGrid').innerHTML = `<div class="empty" style="grid-column:1/-1">⚠️ Failed to load books.</div>`;
+        }
+    }
+
+    async function deleteBook(id, btn) {
+        if (!confirm('Remove this book listing?')) return;
+        btn.disabled = true;
+        try {
+            const res = await fetch(`/api/books/${id}`, { method: 'DELETE' });
+            if (res.ok) { showToast('Book removed.'); loadMyBooks(); }
+            else showToast('Failed to remove book.', 'error');
+        } catch(e) { showToast('Network error.', 'error'); }
+    }
+
+    function esc(str) {
+        const d = document.createElement('div');
+        d.appendChild(document.createTextNode(str));
+        return d.innerHTML;
+    }
+
+    loadMyBooks();
+</script>
+</body>
+</html>
