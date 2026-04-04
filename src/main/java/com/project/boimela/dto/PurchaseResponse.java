@@ -1,7 +1,7 @@
 package com.project.boimela.dto;
 
 public class PurchaseResponse {
-    private Long requestId;
+    private Long id;
     private String bookTitle;
     private String sellerUsername;
     private String status;
@@ -9,17 +9,17 @@ public class PurchaseResponse {
 
     public PurchaseResponse() {}
 
-    public PurchaseResponse(Long requestId, String bookTitle, String sellerUsername,
+    public PurchaseResponse(Long id, String bookTitle, String sellerUsername,
                             String status, Double price) {
-        this.requestId = requestId;
+        this.id = id;
         this.bookTitle = bookTitle;
         this.sellerUsername = sellerUsername;
         this.status = status;
         this.price = price;
     }
 
-    public Long getRequestId() { return requestId; }
-    public void setRequestId(Long requestId) { this.requestId = requestId; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getBookTitle() { return bookTitle; }
     public void setBookTitle(String bookTitle) { this.bookTitle = bookTitle; }
