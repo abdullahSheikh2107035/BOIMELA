@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Incoming Orders - Boimela</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0d0d0d; color: #e0e0e0; min-height: 100vh; }
+        nav { background: linear-gradient(135deg,#1a1a2e,#16213e); border-bottom: 1px solid #2a2a4a; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
+        .nav-brand { font-size: 1.5rem; font-weight: 700; color: #667eea; text-decoration: none; }
+        .nav-links { display: flex; gap: 8px; }
+        .nav-links a { padding: 8px 16px; border-radius: 8px; text-decoration: none; color: #a0a0c0; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
+        .nav-links a:hover, .nav-links a.active { background: rgba(102,126,234,0.2); color: #667eea; }
+        .logout-btn { padding: 8px 16px; background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+
+        main { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+        h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; }
+        .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 32px; }
+
+        /* Stats */
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 32px; }
+        .stat-card { background: #161625; border: 1px solid #2a2a4a; border-radius: 12px; padding: 18px 20px; text-align: center; }
+        .stat-val { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px; }
+        .stat-label { font-size: 0.78rem; color: #666; }
+        .val-pending { color: #f59e0b; }
+        .val-accepted { color: #10b981; }
+        .val-rejected { color: #ef4444; }
+
+        /* Order list */
+        .order-list { display: flex; flex-direction: column; gap: 14px; }
+        .order-card { background: #161625; border: 1px solid #2a2a4a; border-radius: 14px; padding: 20px; display: flex; align-items: center; gap: 20px; transition: border-color 0.2s; }
+        .order-card:hover { border-color: #3a3a7a; }
+        .order-icon { width: 52px; height: 52px; border-radius: 12px; background: rgba(102,126,234,0.1); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+        .order-info { flex: 1; }
+        .order-title { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+        .order-buyer { font-size: 0.82rem; color: #888; margin-bottom: 2px; }
+        .order-price { font-size: 0.85rem; color: #10b981; font-weight: 600; }
+        .order-actions { display: flex; gap: 8px; flex-shrink: 0; flex-direction: column; align-items: flex-end; }
+        .status-badge { padding: 5px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; margin-bottom: 8px; }
+        .status-PENDING { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .status-ACCEPTED { background: rgba(16,185,129,0.15); color: #10b981; }
+        .status-REJECTED { background: rgba(239,68,68,0.12); color: #ef4444; }
+        .btn-accept { padding: 6px 14px; background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; }
+        .btn-accept:hover { background: rgba(16,185,129,0.3); }
+        .btn-reject { padding: 6px 14px; background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; }
+        .btn-reject:hover { background: rgba(239,68,68,0.2); }
+        .empty { text-align: center; padding: 60px 20px; color: #444; }
+        .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+
+        /* Toast */
+        #toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: 0.88rem; font-weight: 500; z-index: 9999; display: none; }
+        .toast-success { background: #065f46; color: #6ee7b7; border: 1px solid #059669; }
+        .toast-error { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="/dashboard" class="nav-brand">📚 Boimela</a>
+    <div class="nav-links">
+        <a href="/dashboard">🏠 Marketplace</a>
+        <a href="/sell">📦 My Books</a>
+        <a href="/orders" class="active">📋 Orders</a>
+    </div>
+    <form th:action="@{/logout}" method="post">
+        <button type="submit" class="logout-btn">Logout</button>
+    </form>
+</nav>
+
+<main>
+    <h1>📋 Incoming Orders</h1>
+    <p class="subtitle">Manage purchase requests for your books. Accept or reject buyer requests.</p>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-val val-pending" id="cntPending">—</div>
+            <div class="stat-label">⏳ Pending</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-val val-accepted" id="cntAccepted">—</div>
+            <div class="stat-label">✅ Accepted</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-val val-rejected" id="cntRejected">—</div>
+            <div class="stat-label">❌ Rejected</div>
+        </div>
+    </div>
+
+    <div class="order-list" id="orderList">
+        <div style="text-align:center;color:#555;padding:40px;">Loading orders...</div>
+    </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = type === 'success' ? 'toast-success' : 'toast-error';
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3500);
+    }
+
+    async function loadOrders() {
+        try {
+            const res = await fetch('/api/purchases/my-orders');
+            if (!res.ok) {
+                document.getElementById('orderList').innerHTML =
+                    `<div class="empty">⛔ You need a SELLER role to view orders.</div>`;
+                return;
+            }
+            const orders = await res.json();
+
+            document.getElementById('cntPending').textContent = orders.filter(o => o.status === 'PENDING').length;
+            document.getElementById('cntAccepted').textContent = orders.filter(o => o.status === 'ACCEPTED').length;
+            document.getElementById('cntRejected').textContent = orders.filter(o => o.status === 'REJECTED').length;
+
+            const list = document.getElementById('orderList');
+            if (orders.length === 0) {
+                list.innerHTML = `
+                    <div class="empty">
+                        <div class="empty-icon">📭</div>
+                        <p>No purchase orders yet. List books to start receiving orders!</p>
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = orders.map(o => {
+                const isPending = o.status === 'PENDING';
+                return `
+                <div class="order-card" id="order-${o.requestId}">
+                    <div class="order-icon">📖</div>
+                    <div class="order-info">
+                        <div class="order-title">${esc(o.bookTitle)}</div>
+                        <div class="order-buyer">Seller: ${esc(o.sellerUsername)}</div>
+                        <div class="order-price">৳${o.price ? o.price.toFixed(2) : '0.00'}</div>
+                    </div>
+                    <div class="order-actions">
+                        <span class="status-badge status-${o.status}" id="badge-${o.requestId}">
+                            ${o.status === 'PENDING' ? '⏳' : o.status === 'ACCEPTED' ? '✅' : '❌'} ${o.status}
+                        </span>
+                        ${isPending ? `
+                            <button class="btn-accept" onclick="updateOrder(${o.requestId}, 'ACCEPTED', this)">✅ Accept</button>
+                            <button class="btn-reject" onclick="updateOrder(${o.requestId}, 'REJECTED', this)">❌ Reject</button>
+                        ` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        } catch(e) {
+            document.getElementById('orderList').innerHTML =
+                `<div class="empty">⚠️ Failed to load orders.</div>`;
+        }
+    }
+
+    async function updateOrder(requestId, status, btn) {
+        const card = document.getElementById(`order-${requestId}`);
+        const btns = card.querySelectorAll('button');
+        btns.forEach(b => b.disabled = true);
+
+        try {
+            const res = await fetch(`/api/purchases/${requestId}/status?status=${status}`, { method: 'PUT' });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(`Order ${status === 'ACCEPTED' ? 'accepted ✅' : 'rejected ❌'}`);
+                loadOrders();
+            } else {
+                showToast(data.message || 'Failed to update order.', 'error');
+                btns.forEach(b => b.disabled = false);
+            }
+        } catch(e) {
+            showToast('Network error.', 'error');
+            btns.forEach(b => b.disabled = false);
+        }
+    }
+
+    function esc(str) {
+        const d = document.createElement('div');
+        d.appendChild(document.createTextNode(str));
+        return d.innerHTML;
+    }
+
+    loadOrders();
+</script>
+</body>
+</html>
