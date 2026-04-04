@@ -26,3 +26,20 @@ jobs:
 
       - name: Build and Test
         run: mvn clean verify
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to Render
+        # Uses the Render Deploy Hook to trigger a deployment. 
+        # You need to configure RENDER_DEPLOY_HOOK_URL in your GitHub repository secrets.
+        run: |
+          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL secret is not set!"
+            echo "Please set it in your repository Settings -> Secrets and variables -> Actions"
+            exit 1
+          fi
+          curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+

@@ -1,0 +1,19 @@
+version: "1"
+
+services:
+  - type: web
+    name: boimela-web-app
+    env: docker
+    region: ohio
+    plan: free # Change to starter/standard if needed
+    healthCheckPath: /api/books # assuming this is an unprotected endpoint
+    envVars:
+      - key: DB_URL
+        # Using internal database host as it's faster and more secure for apps hosted within Render
+        value: jdbc:postgresql://dpg-d78k8sua2pns73drdm6g-a/boimela
+      - key: DB_USER
+        value: boimela_user
+      - key: DB_PASSWORD
+        value: 99p7BHi5yY32b8XsGjLdElVzDOGhW9J5
+      - key: PORT
+        value: '8080'
