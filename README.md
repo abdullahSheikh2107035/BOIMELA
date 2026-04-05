@@ -1,9 +1,39 @@
-# Book Exchange Platform (BOIMELA)
+# BOIMELA: Book Exchange Platform
+
+![Java Version](https://img.shields.io/badge/Java-17-orange.svg)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.4-brightgreen)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)
+![Docker](https://img.shields.io/badge/Docker-Enabled-blue)
+![Render](https://img.shields.io/badge/Deployed_on-Render-purple)
 
 ## Overview
-A complete Book Exchange Platform web application using Spring Boot, Thymeleaf, PostgreSQL, Docker, and GitHub Actions CI/CD to meet all lab project requirements.
+**BOIMELA** is a full-stack web application designed for a Software Engineering Lab Project. It offers a structured and secure marketplace for users to exchange and sell books. Built with a highly scalable Java Spring Boot backend, Thymeleaf server-side rendered UI, and robust Spring Security, it models a real-world e-commerce architecture. 
 
-## Architecture Layer Diagram
+The application is fully containerized and features seamless CI/CD delivery configured for the **Render** cloud platform.
+
+## Features
+- **Secure Authentication:** User registration and login utilizing Spring Security (BCrypt hashing, Role-based Access Control).
+- **Role System:** Distinct permissions separating standard `BUYER` roles and elevated `SELLER`/`ADMIN` capabilities.
+- **Book Marketplace:** 
+  - Sellers can list, manage, and delete books.
+  - Buyers can explore available books on the platform and initiate exchange/purchase requests.
+- **Order Management:** Sellers receive and manage incoming purchase requests (Accept / Reject flows).
+- **Automated CI/CD:** Github Actions pipeline configured for regression testing and continuous deployment on Render.
+- **Containerization:** Built-in multi-stage `Dockerfile` and `docker-compose.yml` for isolated deployment and database provisioning.
+
+## Technology Stack
+- **Backend Framework:** Spring Boot 3.2.4
+- **Database:** PostgreSQL (with H2 for isolated Integration Tests)
+- **ORM:** Spring Data JPA / Hibernate
+- **Frontend Layer:** Thymeleaf, HTML5, CSS3
+- **Security:** Spring Security 6
+- **Build Tool:** Maven
+- **Containerization:** Docker & Docker Compose
+- **Cloud Deployment:** Render (Infrastructure as Code via Blueprint)
+
+## Architecture Overview
+
+### MVC and Layered Architecture
 ```mermaid
 graph TD
     Client[Browser/Client] --> |HTTP| Controllers[REST / UI Controllers]
@@ -12,7 +42,7 @@ graph TD
     Repositories --> |SQL| Database[(PostgreSQL)]
 ```
 
-## Entity Relationship (ER) Diagram
+### Entity Relationship Model
 ```mermaid
 erDiagram
     USER ||--o{ BOOK : "sells"
@@ -21,36 +51,37 @@ erDiagram
     USER }|..|{ ROLE : "has roles"
 ```
 
-## REST API Endpoints
-- **Application Flow**
-  - `/login` : Web UI for authentication (Thymeleaf)
-  - `/register` : Web UI for user signing up (Thymeleaf)
-  - `/dashboard` : Discover available books to exchange (Thymeleaf)
-- **Auth API (`/api/auth`)**:
-  - `POST /api/auth/signup` - User Registration
-- **Books API (`/api/books`)**:
-  - `GET /api/books` - Get all books
-  - `GET /api/books/{id}` - Get book by ID
-  - `POST /api/books` - Add a new book (Requires SELLER or ADMIN role)
-  - `DELETE /api/books/{id}` - Delete a book (Requires ADMIN role)
-- **Exchange API (`/api/exchanges`)**:
-  - `GET /api/exchanges` - Get all requests (Requires ADMIN)
-  - `POST /api/exchanges` - Request an exchange (Requires BUYER or SELLER)
-  - `PUT /api/exchanges/{id}/status` - Update request status (Requires SELLER or ADMIN)
+## Running the Application Locally
+You can easily spin up the application and an isolated PostgreSQL database using Docker Compose.
 
-## How to Run
-1. Ensure Docker is installed on your local machine.
-2. Navigate to the root directory `D:\BOIMELA` or wherever it was cloned.
-3. Build and launch via Docker Compose:
+1. Ensure [Docker](https://www.docker.com/) is installed and running.
+2. Clone this repository and navigate into the `BOIMELA` directory.
+3. Start the application:
    ```bash
    docker compose up --build
    ```
-4. Access the application at `http://localhost:8080/login`.
+4. Wait for the Spring context to initialize. The platform will be mapped to `http://localhost:8080`.
+5. Access the application directly in your browser.
 
-## CI/CD Workflow
-The project is set up with GitHub Actions CI/CD under `.github/workflows/deploy.yml`. 
-1. **Continuous Integration**: Pushes to `main` branch trigger Maven test execution (15 unit tests, 3 integration tests).
-2. **Continuous Deployment**: If tests pass successfully on the `main` branch, a webhook triggers deployment to **Render**.
+## Deployment to Render
 
-### Note on Render Secrets
-The Render deployment relies on you adding the `RENDER_DEPLOY_HOOK_URL` secret to your GitHub Repository settings to point to your configured Render application instance.
+This repository is strictly configured to use **Render's Native Continuous Deployment** system via Infrastructure as Code (`render.yaml` Blueprint).
+
+### Fully Automated Setup
+1. Fork or clone this repository to your GitHub account.
+2. Log into the [Render Dashboard](https://dashboard.render.com).
+3. Click on the **New +** button and select **Blueprint**.
+4. Connect the web application to your GitHub repository.
+5. Render will automatically parse the `render.yaml` file located in the root of the project.
+6. The web-service and its deployment hooks will be completely auto-provisioned using the pre-configured Internal PostgreSQL credentials.
+
+The `render.yaml` controls the variables injected to the Docker container handling the app execution, preventing the need for manual configuration.
+
+## Testing Execution
+This application employs a strong testing strategy including both structural `UnitTests` leveraging Mockito to test isolated Service rules, and full context `IntegrationTests` utilizing an automatically configured H2 internal DB.
+
+To execute the test suite (requires Maven):
+```bash
+mvn clean test
+```
+The GitHub Actions workflow enforces test completion before triggering Deployments to Render.
