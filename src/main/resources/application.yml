@@ -3,19 +3,16 @@ spring:
     name: boimela
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/boimela_db}
-    username: ${DB_USER:boimela_user}
-    password: ${DB_PASSWORD:boimela_pass}
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 server:
   port: ${PORT:8080}
